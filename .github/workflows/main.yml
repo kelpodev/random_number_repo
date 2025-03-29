@@ -1,5 +1,5 @@
-name: Flake8 Check
-on: [push, pull_request]
+name: Flake8 Check and Deploy
+on: [push]
 jobs:
   flake8-check:
     runs-on: ubuntu-latest
@@ -17,3 +17,21 @@ jobs:
     - name: Run flake8
       run: |
         flake8 .
+  build:
+    needs: flake8-check
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+    - name: Login to Docker
+      uses: docker/login-action@v1
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+    - name: Push to Docker Hub
+      uses: docker/build-push-action@v2
+      with:
+        push: true
+        tags: kelpodev/random_number_repo:latest
